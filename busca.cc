@@ -11,8 +11,7 @@ void obtener_articulos(ifstream& f_in){
     string fichero;
 }
 
-void abrir_fichero(string nombre_fichero){
-    ifstream f_in;
+void abrir_fichero(string nombre_fichero, ifstream& f_in){
     f_in.open(nombre_fichero);
     if (!f_in.is_open()){
         cout << "Error al abrir el fichero \"" << nombre_fichero << "\" para su lectura" << endl;
@@ -20,11 +19,20 @@ void abrir_fichero(string nombre_fichero){
     }
 }
 
-void leer_pagina(ifstream& f_in, Articulo[]){
+bool leer_pagina(ifstream& f_in, Pagina& pagina){
     string num_articulos, ancho_pag, alto_pag;
-    getline(f_in, num_articulos, ' ');
-    getline(f_in, ancho_pag, ' ');
-    getline(f_in, alto_pag);
+    if (getline(f_in, num_articulos, ' ')){
+        getline(f_in, ancho_pag, ' ');
+        getline(f_in, alto_pag);
+
+        Pagina pagina;
+
+        return pagina;
+
+    } else {
+        return NULL;
+    }
+    
 
     //Pagina pag = 
     
@@ -32,14 +40,16 @@ void leer_pagina(ifstream& f_in, Articulo[]){
 
 int main(int argc, char *argv[]){
 
-    ifstream fichero;
-    abrir_fichero(argv[1], fichero);
-    while()
+    ifstream f_in;
+    abrir_fichero(argv[1], f_in);
+    Pagina pagina;
+    while(){
+
+    }
         // leer una página
 
     return 0;
 }
-*/
 
 /*
 int main() {
