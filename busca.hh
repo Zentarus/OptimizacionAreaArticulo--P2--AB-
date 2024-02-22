@@ -22,13 +22,15 @@ public:
     int ancho;
     int alto;
     int area;
-    Articulo* articulos;
+    Articulo **articulos;
 
-    Pagina(int _num_articulos, int _ancho, int _alto) :
-        num_articulos(_num_articulos), ancho(_ancho), alto(_alto) {
-            articulos = new Articulo[num_articulos];
+    Pagina(int _num_articulos, int _ancho, int _alto, Articulo **_articulos) :
+        num_articulos(_num_articulos), ancho(_ancho), alto(_alto), articulos(_articulos) {
             area = _ancho * _alto;
     }
+
+    Pagina() :
+        Pagina(0, 0, 0, nullptr) {}
 
     ~Pagina() {
         delete[] articulos;
