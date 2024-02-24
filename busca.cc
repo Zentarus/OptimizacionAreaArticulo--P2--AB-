@@ -7,10 +7,6 @@
 
 using namespace std;
 
-void obtener_articulos(ifstream& f_in){
-    string fichero;
-}
-
 void abrir_fichero(string nombre_fichero, ifstream& f_in){
     f_in.open(nombre_fichero);
     if (!f_in.is_open()){
@@ -20,6 +16,7 @@ void abrir_fichero(string nombre_fichero, ifstream& f_in){
 }
 
 void leer_pagina(ifstream& f_in, Pagina& pagina){
+
     string s_num_articulos, s_ancho_pag, s_alto_pag;
     string x_articulo, y_articulo, ancho_articulo, alto_articulo;
 
@@ -31,47 +28,38 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
     int ancho_pag = stoi(s_ancho_pag);
     int alto_pag = stoi(s_alto_pag);
 
-    Articulo v_articulos[num_articulos];
+    vector<Articulo> v_articulos; 
 
     for (int i = 0; i < num_articulos; i++){
         
-        getline(f_in, x_articulo, ' ');
-        getline(f_in, y_articulo, ' ');
         getline(f_in, ancho_articulo, ' ');
-        getline(f_in, alto_articulo);
+        getline(f_in, alto_articulo, ' ');
+        getline(f_in, x_articulo, ' ');
+        getline(f_in, y_articulo);
 
-        v_articulos[i] = Articulo(stoi(x_articulo), stoi(y_articulo), stoi(ancho_articulo), stoi(alto_articulo));
+        v_articulos.push_back(Articulo(stoi(x_articulo), stoi(y_articulo), stoi(ancho_articulo), stoi(alto_articulo)));
     }
+
     pagina.num_articulos = num_articulos;
     pagina.ancho = ancho_pag;
     pagina.alto = alto_pag;
-    pagina.num_articulos = v_articulos;
+    pagina.actualizar_area();
+    pagina.articulos = v_articulos;
 }
 
 int main(int argc, char *argv[]){
-
     ifstream f_in;
+
+    if (argc < 2){
+        cout << "ERROR: Numero de parametros invalido" << endl;
+        exit(1);
+    }
+
     abrir_fichero(argv[1], f_in);
-    cout << "antes de leer" << endl;
     Pagina pagina;
     
     leer_pagina(f_in, pagina);
-    cout << "despues de leer pagina" << endl;
-    cout << "alto: " << pagina.alto << endl;
-    cout << "ancho: " << pagina.ancho << endl;
-    cout << "area: " << pagina.area << endl;
-    cout << "num_articulos: " << pagina.num_articulos << endl;
-    
-    for(int i = 0; i < pagina.num_articulos; i++){
-        cout << "articulo: " << i << endl;
-        cout << "--------------------------" << endl;
-        cout << "x_articulo: " << pagina.articulos[i]->x << endl;
-        cout << "y_articulo: " << pagina.articulos[i]->y << endl;
-        cout << "ancho_articulo: " << pagina.articulos[i]->ancho << endl;
-        cout << "alto_articulo: " << pagina.articulos[i]->alto << endl;
-        cout << endl;
-    }
-    
+    pagina.mostrar_pagina(true);
     /*
     while(!f_in.eof()){
         
