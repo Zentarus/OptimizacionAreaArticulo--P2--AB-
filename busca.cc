@@ -1,9 +1,9 @@
 #include "busca.hh"
 #include <fstream>
-#include <istream>
 #include <iostream>
 #include <stdlib.h>
-#include <string>
+#include "arbol.hh"
+
 
 using namespace std;
 
@@ -37,7 +37,7 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
         getline(f_in, x_articulo, ' ');
         getline(f_in, y_articulo);
 
-        v_articulos.push_back(Articulo(stoi(x_articulo), stoi(y_articulo), stoi(ancho_articulo), stoi(alto_articulo)));
+        v_articulos.push_back(Articulo(i, stoi(x_articulo), stoi(y_articulo), stoi(ancho_articulo), stoi(alto_articulo)));
     }
 
     pagina.num_articulos = num_articulos;
@@ -46,6 +46,24 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
     pagina.actualizar_area();
     pagina.articulos = v_articulos;
 }
+
+void obtener_composicion_optima(Pagina& pagina){
+    
+    // PRUEBA
+    /*
+    Articulo art0 = pagina.articulos[0];
+    Articulo art1 = pagina.articulos[1];
+    Articulo art2 = pagina.articulos[2];
+    vector<Articulo> arts;
+    arts.push_back(art0);
+    arts.push_back(art1);
+    arts.push_back(art2);
+    Node* raiz = new Node(arts, to_string(art0.id) + to_string(art1.id) + to_string(art2.id));
+    cout << raiz->id << endl;
+    cout << raiz->area_ocupada << endl;
+    */
+}
+
 
 int main(int argc, char *argv[]){
     ifstream f_in;
@@ -56,15 +74,21 @@ int main(int argc, char *argv[]){
     }
 
     abrir_fichero(argv[1], f_in);
-    Pagina pagina;
+    /*Pagina pagina;
     
     leer_pagina(f_in, pagina);
     pagina.mostrar_pagina(true);
-    /*
+    */
+    int num_paginas = 0;
     while(!f_in.eof()){
-        
+        Pagina pagina;
+    
+        leer_pagina(f_in, pagina);
+        obtener_composicion_optima(pagina);
+        //pagina.mostrar_pagina(true, num_paginas);
+        num_paginas++;
     }
         // leer una página
-    */
+
     return 0;
 }
