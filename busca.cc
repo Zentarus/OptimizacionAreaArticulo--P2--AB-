@@ -47,8 +47,29 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
     pagina.articulos = v_articulos;
 }
 
+
+void construir_siguiente_nivel(Pagina& pagina, Node* raiz, int& area_optima, int nivel){
+    if(nivel <= pagina.articulos.size()){ // | ... | ... condiciones de poda
+        vector<Articulo> articulos_viejos_con_nuevo = raiz->articulos;
+        articulos_viejos_con_nuevo.push_back(pagina.articulos[nivel]);
+
+        raiz->left = new Node(articulos_viejos_con_nuevo, raiz->id + to_string(pagina.articulos[nivel].id)); // hijo izquierdo añadira el nuevo articulo
+        construir_siguiente_nivel(pagina, raiz->left, area_optima, nivel+1);
+        
+        raiz->right = new Node(raiz->articulos, raiz->id);                                                   // hijo derecho no añadira el nuevo articulo
+        construir_siguiente_nivel(pagina, raiz->left, area_optima, nivel+1);
+    }
+}
+
+
 void obtener_composicion_optima(Pagina& pagina){
+    int area_optima = 0;
+    vector<Articulo> articulos_insertados;
+    Node* raiz = new Node(articulos_insertados, "");
     
+    construir_siguiente_nivel(pagina, raiz, area_optima, 0);
+
+
     // PRUEBA
     /*
     Articulo art0 = pagina.articulos[0];
