@@ -1,12 +1,11 @@
-//A c++ Program to implement a binary tree in data structures
+/*//A c++ Program to implement a binary tree in data structures
 
-#include <bits/stdc++.h>
 #include <stdio.h>
 #include "arbol.hh"
 
 using namespace std;
 
-/*
+
 string vector_articulos_a_string(vector<Articulo> articulos){
     string res = "";
 
@@ -15,12 +14,12 @@ string vector_articulos_a_string(vector<Articulo> articulos){
         res += ", ";
     }
 }
-*/
 
-void Printtree(struct Node *root, int tab)
+
+void print_tree(int tab)
 {
     //Check if tree is empty
-    if(root == NULL)
+    if(this == NULL)
     return;
 
     for(int i = 0; i < tab; i++){
@@ -35,7 +34,7 @@ void Printtree(struct Node *root, int tab)
     cout << "Izquierda: ";
     if(root->left != NULL){
         cout << "\n";
-        Printtree(root -> left, tab+1);
+        print_tree(root -> left, tab+1);
     } else {
         cout << "NULL";
     }
@@ -48,8 +47,11 @@ void Printtree(struct Node *root, int tab)
     cout << "Derecha: ";
     if(root->right != NULL){
         cout << "\n";
-        Printtree(root -> right, tab+1);
+        print_tree(root -> right, tab+1);
     } else {
         cout << "NULL";
     }
 }
+
+int main(){}
+*/

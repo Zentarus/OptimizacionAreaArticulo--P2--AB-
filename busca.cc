@@ -47,18 +47,35 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
     pagina.articulos = v_articulos;
 }
 
-
-void construir_siguiente_nivel(Pagina& pagina, Node* raiz, int& area_optima, int nivel){
-    if(nivel <= pagina.articulos.size()){ // | ... | ... condiciones de poda
-        vector<Articulo> articulos_viejos_con_nuevo = raiz->articulos;
-        articulos_viejos_con_nuevo.push_back(pagina.articulos[nivel]);
-
-        raiz->left = new Node(articulos_viejos_con_nuevo, raiz->id + to_string(pagina.articulos[nivel].id)); // hijo izquierdo añadira el nuevo articulo
-        construir_siguiente_nivel(pagina, raiz->left, area_optima, nivel+1);
-        
-        raiz->right = new Node(raiz->articulos, raiz->id);                                                   // hijo derecho no añadira el nuevo articulo
-        construir_siguiente_nivel(pagina, raiz->left, area_optima, nivel+1);
+void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
+    for (auto& articulo : viejo){
+        nuevo.push_back(articulo);
     }
+}
+
+void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, int& area_optima, int nivel){
+    Articulo sig_articulo = pagina.articulos[nivel];
+    if(nivel < pagina.articulos.size()){ // | ... | ... condiciones de poda
+
+        // añade el articulo al vector
+        articulos_actuales.push_back(pagina.articulos[nivel]);
+        
+        // RECORRE IZQUIERDA (añade el nuevo articulo)
+        // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
+        raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
+        construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, area_optima, nivel+1);
+        
+        // extrae el articulo del vector
+        articulos_actuales.pop_back();
+
+        // RECORRE DERECHA (no añade el nuevo articulo)
+        raiz->right = new Node(raiz->articulos, raiz->id);
+        construir_siguiente_nivel(pagina, raiz->right, articulos_actuales, area_optima, nivel+1);
+        
+
+        
+        
+    };
 }
 
 
@@ -67,8 +84,9 @@ void obtener_composicion_optima(Pagina& pagina){
     vector<Articulo> articulos_insertados;
     Node* raiz = new Node(articulos_insertados, "");
     
-    construir_siguiente_nivel(pagina, raiz, area_optima, 0);
+    construir_siguiente_nivel(pagina, raiz, articulos_insertados, area_optima, 0);
 
+    Node::print_tree(raiz, 0);
 
     // PRUEBA
     /*
