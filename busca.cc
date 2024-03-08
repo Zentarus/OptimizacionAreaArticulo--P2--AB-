@@ -1,16 +1,26 @@
 #include "busca.hh"
 #include <fstream>
 #include <iostream>
+#include <iomanip>
+#include <chrono>
 #include <stdlib.h>
 #include "./librerias/arbol.hh"
 
 
 using namespace std;
 
-void abrir_fichero(string nombre_fichero, ifstream& f_in){
+void abrir_fichero_lectura(string nombre_fichero, ifstream& f_in){
     f_in.open(nombre_fichero);
     if (!f_in.is_open()){
         cout << "Error al abrir el fichero \"" << nombre_fichero << "\" para su lectura" << endl;
+        exit(1);
+    }
+}
+
+void abrir_fichero_escritura(string nombre_fichero, ofstream& f_out){
+    f_out.open(nombre_fichero);
+    if (!f_out.is_open()){
+        cout << "Error al abrir el fichero \"" << nombre_fichero << "\" para su escritura" << endl;
         exit(1);
     }
 }
@@ -45,6 +55,10 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
     pagina.alto = alto_pag;
     pagina.actualizar_area();
     pagina.articulos = v_articulos;
+}
+
+void escribir_resultados(ofstream& f_out, double tiempo_ejecucion){
+    f_out << tiempo_ejecucion << " ms" << endl;
 }
 
 void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
@@ -163,13 +177,17 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
 }
 
 
-void obtener_composicion_optima(Pagina& pagina){
+// faltará que esta función devuelva por referencia el area_optima que habrá calculado construir_siguiente_nivel(...)
+void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
     int area_optima = 0;
     vector<Articulo> articulos_insertados;
     Node* raiz = new Node(articulos_insertados, "");
-    
-    construir_siguiente_nivel(pagina, raiz, articulos_insertados, area_optima, 0);
 
+    clock_t start_time = clock();
+    construir_siguiente_nivel(pagina, raiz, articulos_insertados, area_optima, 0);
+    clock_t end_time = clock();
+
+    duracion_ms = (double)(end_time - start_time) * 1000.0 / CLOCKS_PER_SEC;
     Node::print_tree(raiz, 0);
 
     // PRUEBA
@@ -187,30 +205,32 @@ void obtener_composicion_optima(Pagina& pagina){
     */
 }
 
-
 int main(int argc, char *argv[]){
+    double tiempo_ejecucion = 0.0;
     ifstream f_in;
+    ofstream f_out;
 
-    if (argc < 2){
+    if (argc < 3){
         cout << "ERROR: Numero de parametros invalido" << endl;
         exit(1);
     }
 
-    abrir_fichero(argv[1], f_in);
+    abrir_fichero_lectura(argv[1], f_in);
+    abrir_fichero_escritura(argv[2], f_out);
     /*Pagina pagina;
-    
     leer_pagina(f_in, pagina);
     pagina.mostrar_pagina(true);
     */
-    int num_paginas = 0;
+
     while(!f_in.eof()){
         Pagina pagina;
         leer_pagina(f_in, pagina);
-        obtener_composicion_optima(pagina);
+        obtener_composicion_optima(pagina, tiempo_ejecucion);
         //pagina.mostrar_pagina(true, num_paginas);
-        num_paginas++;
+        escribir_resultados(f_out, tiempo_ejecucion);
     }
-        // leer una página
-
+    
+    f_in.close();
+    f_out.close();
     return 0;
 }
