@@ -55,7 +55,6 @@ void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
 
 // Calcula el área actual ocupada de la pagina
 int area_actual(const Pagina& pagina, const vector<Articulo>& articulos_actuales) {
-    cout << "Entro area_actual()" << endl;
     int area_total = 0;
     for (const Articulo& articulo : articulos_actuales) {
         area_total += articulo.ancho * articulo.alto;
@@ -94,13 +93,8 @@ bool hay_interseccion(const vector<Articulo>& articulos_actuales, const Articulo
 }
 
 bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel, int area_optima) {
-    // Si el area actual es menor que el area óptima
+   
     /*
-    if (area_actual(pagina, articulos_actuales) <= area_optima) {
-        cout << "PODA: Area actual es menor que optima" << endl;
-        return true;
-    }
-
     // Si el artículo actual no cabe en la página
     if (!cabe_en_pagina(pagina, articulos_actuales[nivel])) {
         cout << "PODA: El articulo no cabe en pagina" << endl;
@@ -109,11 +103,22 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
     */
 
     // Si hay intersección de artículos
+    // --------------------------------------------------------------
     if (hay_interseccion(articulos_actuales, sig_articulo, nivel)) {
         cout << "PODA: Hay interseccion entre articulos" << endl;
         return true;
     }
-    
+
+    // Si el area que se va a añadir es menor que una óptima alcanzada
+    // ---------------------------------------------------------------
+    vector<Articulo> vector_con_sig_articulo = articulos_actuales; // Declaramos un vector auxiliar con el siguiente articulo que se puede añadir
+    vector_con_sig_articulo.push_back(pagina.articulos[nivel]);
+    int area_con_sig_articulo = area_actual(pagina, vector_con_sig_articulo); // Calculamos el área que se alcanza con dicho vector auxiliar
+
+    if (area_con_sig_articulo <= area_optima) {
+        cout << "PODA: Area a alcanzar es menor o igual que optima" << endl;
+        return true;
+    }
     return false;
 }
 
@@ -122,11 +127,11 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
     if (nivel < pagina.articulos.size()){ // Para que en la siguiente instrucción no se acceda a una componente fuera de rango
                                           // También es la condición de poda para no pasarnos del número de articulos
         Articulo sig_articulo = pagina.articulos[nivel];
-
+        
         cout << "Explorando articulo: " << sig_articulo.id << " en nivel " << nivel << endl;
         cout << sig_articulo.x << ", " << sig_articulo.y << ", " << sig_articulo.ancho << ", " << sig_articulo.alto << endl;
 
-        if (!aplicar_poda(pagina, articulos_actuales, sig_articulo, nivel, area_optima)) // Poda basada en superposición de articulos y área óptima
+        if (!aplicar_poda(pagina, articulos_actuales, sig_articulo, nivel, area_optima))
         {
             cout << "No se aplica poda, continuando exploracion..." << endl;
 
@@ -137,6 +142,7 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
             // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
             cout << "Explorando rama izquierda..." << endl;
             raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
+            //area_optima = max(area_actual(pagina, articulos_actuales), area_optima);
             construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, area_optima, nivel + 1);
 
             // extrae el articulo del vector
