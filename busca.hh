@@ -2,8 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <string>
-#include "pagina.hh"
-#include "articulo.hh"
+#include "./librerias/pagina.hh"
+#include "./librerias/articulo.hh"
 
 using namespace std;
 
