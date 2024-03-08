@@ -58,7 +58,7 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
 }
 
 void escribir_resultados(ofstream& f_out, double tiempo_ejecucion){
-    f_out << tiempo_ejecucion << " ms" << endl;
+    f_out << "Aqui resultado area | " << setprecision(3) << tiempo_ejecucion << " ms" << endl;
 }
 
 void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
@@ -183,11 +183,11 @@ void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
     vector<Articulo> articulos_insertados;
     Node* raiz = new Node(articulos_insertados, "");
 
-    clock_t start_time = clock();
+    auto start_time = chrono::high_resolution_clock::now();
     construir_siguiente_nivel(pagina, raiz, articulos_insertados, area_optima, 0);
-    clock_t end_time = clock();
+    auto end_time = chrono::high_resolution_clock::now();
 
-    duracion_ms = (double)(end_time - start_time) * 1000.0 / CLOCKS_PER_SEC;
+    duracion_ms = chrono::duration_cast<chrono::nanoseconds>(end_time - start_time).count() / 1000000.0;
     Node::print_tree(raiz, 0);
 
     // PRUEBA
