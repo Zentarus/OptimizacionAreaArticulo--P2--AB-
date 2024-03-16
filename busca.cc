@@ -68,10 +68,10 @@ void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
 }
 
 // Calcula el área actual ocupada de la pagina
-int area_actual(const Pagina& pagina, const vector<Articulo>& articulos_actuales) {
+int calcular_area_actual(const vector<Articulo>& articulos_actuales) {
     int area_total = 0;
     for (const Articulo& articulo : articulos_actuales) {
-        area_total += articulo.ancho * articulo.alto;
+        area_total += articulo.area;
     }
     return area_total;
 }
@@ -99,10 +99,12 @@ bool hay_interseccion(const vector<Articulo>& articulos_actuales, const Articulo
         if (articulo_actual.x < articulo_anterior.x + articulo_anterior.ancho &&
             articulo_actual.x + articulo_actual.ancho > articulo_anterior.x &&
             articulo_actual.y < articulo_anterior.y + articulo_anterior.alto &&
-            articulo_actual.y + articulo_actual.alto > articulo_anterior.y) { 
-            return true; 
+            articulo_actual.y + articulo_actual.alto > articulo_anterior.y) {
+            cout << "Hay intersección" << endl;
+            return true;
         }
     }
+    cout << "NO hay intersección" << endl;
     return false; 
 }
 
@@ -127,7 +129,7 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
     // ---------------------------------------------------------------
     vector<Articulo> vector_con_sig_articulo = articulos_actuales; // Declaramos un vector auxiliar con el siguiente articulo que se puede añadir
     vector_con_sig_articulo.push_back(pagina.articulos[nivel]);
-    int area_con_sig_articulo = area_actual(pagina, vector_con_sig_articulo); // Calculamos el área que se alcanza con dicho vector auxiliar
+    int area_con_sig_articulo = calcular_area_actual(vector_con_sig_articulo); // Calculamos el área que se alcanza con dicho vector auxiliar
 
     if (area_con_sig_articulo <= area_optima) {
         cout << "PODA: Area a alcanzar es menor o igual que optima" << endl;
@@ -136,10 +138,18 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
     return false;
 }
 
-void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, int& area_optima, int nivel){
+void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, vector<Articulo>& articulos_optimos, int& area_optima, int nivel){
+    
+    int area_actual = calcular_area_actual(articulos_actuales);
 
-    if (nivel < pagina.articulos.size()){ // Para que en la siguiente instrucción no se acceda a una componente fuera de rango
-                                          // También es la condición de poda para no pasarnos del número de articulos
+    if(area_actual > area_optima) {
+        area_optima = area_actual;
+        articulos_optimos = articulos_actuales;
+
+    }
+
+    if (nivel < pagina.articulos.size()){ // Para que en la siguiente instruccion no se acceda a una componente fuera de rango
+                                          // Tambien es la condición de poda para no pasarnos del número de articulos
         Articulo sig_articulo = pagina.articulos[nivel];
         
         cout << "Explorando articulo: " << sig_articulo.id << " en nivel " << nivel << endl;
@@ -156,8 +166,8 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
             // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
             cout << "Explorando rama izquierda..." << endl;
             raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
-            //area_optima = max(area_actual(pagina, articulos_actuales), area_optima);
-            construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, area_optima, nivel + 1);
+            //area_optima = max(calcular_area_actual(pagina, articulos_actuales), area_optima);
+            construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
 
             // extrae el articulo del vector
             articulos_actuales.pop_back();
@@ -165,7 +175,7 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
             // RECORRE DERECHA (no añade el nuevo articulo)
             cout << "Explorando rama derecha..." << endl;
             raiz->right = new Node(raiz->articulos, raiz->id);
-            construir_siguiente_nivel(pagina, raiz->right, articulos_actuales, area_optima, nivel + 1);
+            construir_siguiente_nivel(pagina, raiz->right, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
         }
         else
         {
@@ -180,15 +190,22 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
 // faltará que esta función devuelva por referencia el area_optima que habrá calculado construir_siguiente_nivel(...)
 void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
     int area_optima = 0;
-    vector<Articulo> articulos_insertados;
+    vector<Articulo> articulos_insertados, articulos_optimos;
     Node* raiz = new Node(articulos_insertados, "");
 
     auto start_time = chrono::high_resolution_clock::now();
-    construir_siguiente_nivel(pagina, raiz, articulos_insertados, area_optima, 0);
+    construir_siguiente_nivel(pagina, raiz, articulos_insertados, articulos_optimos, area_optima, 0);
     auto end_time = chrono::high_resolution_clock::now();
 
     duracion_ms = chrono::duration_cast<chrono::nanoseconds>(end_time - start_time).count() / 1000000.0;
     Node::print_tree(raiz, 0);
+
+    cout << endl << "--------------------------------------------------------" << endl;
+    cout << "Área óptima: " << endl << "\t" << area_optima << endl << endl;
+    cout << "Artículos utilizados: " << endl;
+    for (Articulo art : articulos_optimos){
+        cout << "\t" << art.x << ", " << art.y << ", " << art.ancho << ", " << art.alto << endl;
+    }
 
     // PRUEBA
     /*
