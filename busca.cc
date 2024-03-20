@@ -189,17 +189,17 @@ bool cabe_en_pagina(const Pagina& pagina, const Articulo& articulo) {
 */
 
 // Comprueba si hay intersección entre el artículo actual y los articulos colocados anteriormente
-bool hay_interseccion_con_ultimo_anadido(const vector<Articulo>& articulos_actuales, int nivel) {
-    cout << "Entro hay_interseccion_con_ultimo_anadido()" << endl;
-    const Articulo& articulo_nuevo = articulos_actuales[articulos_actuales.size()-1];
+bool hay_interseccion_con_sig_articulo(const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel) {
+    cout << "Entro hay_interseccion_con_sig_articulo()" << endl;
+    const Articulo& articulo_actual = sig_articulo;
 
-    for (int i = 0; i < articulos_actuales.size() - 1; ++i) {
+    for (int i = 0; i < articulos_actuales.size(); ++i) {
         const Articulo& articulo_anterior = articulos_actuales[i];
-        cout << "Se va a comparar: " << articulo_nuevo.x << ", " << articulo_nuevo.y << ", " << articulo_nuevo.ancho << ", " << articulo_nuevo.alto << " con "
+        cout << "Se va a comparar: " << articulo_actual.x << ", " << articulo_actual.y << ", " << articulo_actual.ancho << ", " << articulo_actual.alto << " con "
                                         << articulo_anterior.x << ", " << articulo_anterior.y << ", " << articulo_anterior.ancho << ", " << articulo_anterior.alto << endl;
 
         // Comprueba si hay intersección entre los artículos
-        if (hay_interseccion_entre_pareja_articulos(articulo_nuevo, articulo_anterior)) {
+        if (hay_interseccion_entre_pareja_articulos(articulo_actual, articulo_anterior)) {
             cout << "Hay interseccion con el siguiente articulo a anadir" << endl;
             return true;
         }
@@ -222,7 +222,7 @@ int area_restante_maxima(const Pagina& pagina, const vector<Articulo>& articulos
     return calcular_area(articulos_restantes);
 }
 
-bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel, int area_optima, bool anadido) {
+bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel, int area_optima) {
 
     /*
     // Si el artículo actual no cabe en la página
@@ -232,14 +232,14 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
     }
     */
 
-    
+    /*
     // Si hay intersección de artículos
     // --------------------------------------------------------------
-    if (anadido && hay_interseccion_con_ultimo_anadido(articulos_actuales, nivel)) {
+    if (hay_interseccion_con_sig_articulo(articulos_actuales, sig_articulo, nivel)) {
         cout << " >>> PODA: Hay interseccion entre articulos" << endl;
         return true;
     }
-    
+    */
 
     /*
     // Si el area que se va a añadir es menor que una óptima alcanzada
@@ -268,7 +268,7 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
     return false;
 }
 
-void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, vector<Articulo>& articulos_optimos, int& area_optima, int nivel, bool anadido){
+void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, vector<Articulo>& articulos_optimos, int& area_optima, int nivel){
     int area_actual = calcular_area(articulos_actuales);
     cout << endl;
     cout << "   !!!!!!!!!" << endl;
@@ -288,28 +288,30 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
         cout << "--------------- Explorando articulo: " << sig_articulo.id << " en nivel " << nivel << endl;
         cout << sig_articulo.x << ", " << sig_articulo.y << ", " << sig_articulo.ancho << ", " << sig_articulo.alto << endl;
 
-        if (!aplicar_poda(pagina, articulos_actuales, sig_articulo, nivel, area_optima, anadido))
+        if (!aplicar_poda(pagina, articulos_actuales, sig_articulo, nivel, area_optima))
         {
             cout << "No se aplica poda, continuando exploracion..." << endl;
 
-            
-            // añade el articulo al vector
-            articulos_actuales.push_back(pagina.articulos[nivel]);
+            if(!hay_interseccion_con_sig_articulo(articulos_actuales, sig_articulo, nivel)){
+                // añade el articulo al vector
+                articulos_actuales.push_back(pagina.articulos[nivel]);
 
-            // RECORRE IZQUIERDA (añade el nuevo articulo)
-            // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
-            cout << "Explorando rama izquierda..." << endl;
-            raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
-            //area_optima = max(calcular_area(pagina, articulos_actuales), area_optima);
-            construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1, true);
+                // RECORRE IZQUIERDA (añade el nuevo articulo)
+                // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
+                cout << "Explorando rama izquierda..." << endl;
+                raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
+                //area_optima = max(calcular_area(pagina, articulos_actuales), area_optima);
+                construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
 
-            // extrae el articulo del vector
-            articulos_actuales.pop_back();
-
+                // extrae el articulo del vector
+                articulos_actuales.pop_back();
+            } else {
+                cout << "INTERSECCION: poda en rama izquierda" << endl;
+            }
             // RECORRE DERECHA (no añade el nuevo articulo)
             cout << "Explorando rama derecha..." << endl;
             raiz->right = new Node(raiz->articulos, raiz->id);
-            construir_siguiente_nivel(pagina, raiz->right, articulos_actuales, articulos_optimos, area_optima, nivel + 1, false);
+            construir_siguiente_nivel(pagina, raiz->right, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
         }
         else
         {
@@ -328,7 +330,7 @@ void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
     Node* raiz = new Node(articulos_insertados, "");
 
     auto start_time = chrono::high_resolution_clock::now();
-    construir_siguiente_nivel(pagina, raiz, articulos_insertados, articulos_optimos, area_optima, 0, false);
+    construir_siguiente_nivel(pagina, raiz, articulos_insertados, articulos_optimos, area_optima, 0);
     auto end_time = chrono::high_resolution_clock::now();
 
     duracion_ms = chrono::duration_cast<chrono::nanoseconds>(end_time - start_time).count() / 1000000.0;
