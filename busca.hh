@@ -19,7 +19,7 @@ void leer_pagina(ifstream& f_in, Pagina& pagina);
 
 void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo);
 
-int calcular_area_actual(const vector<Articulo>& articulos_actuales);
+int calcular_area(const vector<Articulo>& articulos_actuales);
 
 bool hay_interseccion(const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel);
 

@@ -38,7 +38,7 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
     int ancho_pag = stoi(s_ancho_pag);
     int alto_pag = stoi(s_alto_pag);
 
-    vector<Articulo> v_articulos; 
+    vector<Articulo> v_articulos;
 
     for (int i = 0; i < num_articulos; i++){
         
@@ -67,21 +67,29 @@ void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
     }
 }
 
-// Calcula el área actual ocupada de la pagina
-int calcular_area_actual(const vector<Articulo>& articulos_actuales) {
+// Calcula el área actual ocupada por los articulos pasados por parámetro
+int calcular_area(const vector<Articulo>& articulos_actuales) {
+    
+    
+    // TO-DO
+    // Falta calcular area con formula de inclusion-exclusion
+    
+    
+    /*
     int area_total = 0;
     for (const Articulo& articulo : articulos_actuales) {
         area_total += articulo.area;
     }
     return area_total;
+    */
 }
 
 // Función para verificar si un artículo cabe completamente dentro de la página
 /* Creo que no es necesaria pues todos los artículos caben, pero por si acaso
 bool cabe_en_pagina(const Pagina& pagina, const Articulo& articulo) {
     cout << "Entro cabe_en_pagina()" << endl;
-    return (articulo.x + articulo.ancho <= pagina.ancho) &&
-           (articulo.y + articulo.alto <= pagina.alto);
+    return  (articulo.x + articulo.ancho <= pagina.ancho) &&
+            (articulo.y + articulo.alto <= pagina.alto);
 }
 */
 
@@ -93,23 +101,32 @@ bool hay_interseccion(const vector<Articulo>& articulos_actuales, const Articulo
     for (int i = 0; i < articulos_actuales.size(); ++i) {
         const Articulo& articulo_anterior = articulos_actuales[i];
         cout << "Se va a comparar: " << articulo_actual.x << ", " << articulo_actual.y << ", " << articulo_actual.ancho << ", " << articulo_actual.alto << " con "
-                                     << articulo_anterior.x << ", " << articulo_anterior.y << ", " << articulo_anterior.ancho << ", " << articulo_anterior.alto << endl;
+                                        << articulo_anterior.x << ", " << articulo_anterior.y << ", " << articulo_anterior.ancho << ", " << articulo_anterior.alto << endl;
 
         // Comprueba si hay intersección entre los artículos
         if (articulo_actual.x < articulo_anterior.x + articulo_anterior.ancho &&
             articulo_actual.x + articulo_actual.ancho > articulo_anterior.x &&
             articulo_actual.y < articulo_anterior.y + articulo_anterior.alto &&
             articulo_actual.y + articulo_actual.alto > articulo_anterior.y) {
-            cout << "Hay intersección" << endl;
+            cout << "Hay interseccion" << endl;
             return true;
         }
     }
-    cout << "NO hay intersección" << endl;
-    return false; 
+    cout << "NO hay interseccion" << endl;
+    return false;
+}
+
+int area_restante_maxima(const Pagina& pagina, const vector<Articulo>& articulos_actuales, int nivel){
+    vector articulos_restantes = articulos_actuales;
+    for (int i = nivel; i < pagina.num_articulos; i++){
+        articulos_restantes.push_back(pagina.articulos[i]);
+    }
+
+    return calcular_area(articulos_restantes);
 }
 
 bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel, int area_optima) {
-   
+
     /*
     // Si el artículo actual no cabe en la página
     if (!cabe_en_pagina(pagina, articulos_actuales[nivel])) {
@@ -125,22 +142,30 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
         return true;
     }
 
+    /*
     // Si el area que se va a añadir es menor que una óptima alcanzada
     // ---------------------------------------------------------------
     vector<Articulo> vector_con_sig_articulo = articulos_actuales; // Declaramos un vector auxiliar con el siguiente articulo que se puede añadir
     vector_con_sig_articulo.push_back(pagina.articulos[nivel]);
-    int area_con_sig_articulo = calcular_area_actual(vector_con_sig_articulo); // Calculamos el área que se alcanza con dicho vector auxiliar
+    int area_con_sig_articulo = calcular_area(vector_con_sig_articulo); // Calculamos el área que se alcanza con dicho vector auxiliar
 
     if (area_con_sig_articulo <= area_optima) {
         cout << "PODA: Area a alcanzar es menor o igual que optima" << endl;
         return true;
     }
+    */
+
+    if(area_optima < area_restante_maxima(pagina, articulos_actuales, nivel)){
+        cout << "PODA: (Area actual + Area que queda por añadir) es menor que la optima actual";
+        return true;
+    }
+    
     return false;
 }
 
 void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, vector<Articulo>& articulos_optimos, int& area_optima, int nivel){
     
-    int area_actual = calcular_area_actual(articulos_actuales);
+    int area_actual = calcular_area(articulos_actuales);
 
     if(area_actual > area_optima) {
         area_optima = area_actual;
@@ -166,7 +191,7 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
             // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
             cout << "Explorando rama izquierda..." << endl;
             raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
-            //area_optima = max(calcular_area_actual(pagina, articulos_actuales), area_optima);
+            //area_optima = max(calcular_area(pagina, articulos_actuales), area_optima);
             construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
 
             // extrae el articulo del vector
@@ -201,8 +226,8 @@ void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
     Node::print_tree(raiz, 0);
 
     cout << endl << "--------------------------------------------------------" << endl;
-    cout << "Área óptima: " << endl << "\t" << area_optima << endl << endl;
-    cout << "Artículos utilizados: " << endl;
+    cout << "Area optima: " << endl << "\t" << area_optima << endl << endl;
+    cout << "Articulos utilizados: " << endl;
     for (Articulo art : articulos_optimos){
         cout << "\t" << art.x << ", " << art.y << ", " << art.ancho << ", " << art.alto << endl;
     }

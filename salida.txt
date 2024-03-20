@@ -1,2 +1,2 @@
-Aqui resultado area | 0.508 ms
-Aqui resultado area | 0.187 ms
+Aqui resultado area | 15.6 ms
+Aqui resultado area | 62.5 ms
