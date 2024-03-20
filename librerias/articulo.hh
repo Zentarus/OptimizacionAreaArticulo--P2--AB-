@@ -30,4 +30,11 @@ public:
         cout << "area -> " << area << endl;
     }
 
+    friend bool operator==(const Articulo& a, const Articulo& b){
+        return a.id == b.id;
+    }
+
+    friend bool operator<(const Articulo& a, const Articulo& b){
+        return a.id < b.id;
+    }
 };

@@ -21,7 +21,7 @@ void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo);
 
 int calcular_area(const vector<Articulo>& articulos_actuales);
 
-bool hay_interseccion(const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel);
+bool hay_interseccion_con_sig_articulo(const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel);
 
 bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel, int area_optima);
 

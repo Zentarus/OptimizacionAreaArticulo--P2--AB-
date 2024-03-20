@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <chrono>
 #include <stdlib.h>
+#include <algorithm>
 #include "./librerias/arbol.hh"
 
 
@@ -48,6 +49,7 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
         getline(f_in, y_articulo);
 
         v_articulos.push_back(Articulo(i, stoi(x_articulo), stoi(y_articulo), stoi(ancho_articulo), stoi(alto_articulo)));
+
     }
 
     pagina.num_articulos = num_articulos;
@@ -68,35 +70,111 @@ void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
 }
 
 void calcular_partes(const vector<Articulo>& articulos_actuales, vector<vector<Articulo>>& partes){
-
     for (int i = 0; i < articulos_actuales.size(); i++)
     {
-        vector<vector<Articulo>> subset_temp = partes;  //making a copy of given 2-d vector.
+        vector<Articulo> empty;
+        partes.push_back( empty );
 
+        vector< vector<Articulo> > subset_temp = partes;  //making a copy of given 2-d vector.
+        
         for (int j = 0; j < subset_temp.size(); j++)
             subset_temp[j].push_back( articulos_actuales[i] );   // adding set[i] element to each subset of subsetTemp. like adding {2}(in 2nd iteration  to {{},{1}} which gives {{2},{1,2}}.
-
+        
         for (int j = 0; j < subset_temp.size(); j++)
-            partes.push_back( subset_temp[j] );  //now adding modified subsetTemp to original subset (before{{},{1}} , after{{},{1},{2},{1,2}}) 
+            partes.push_back( subset_temp[j] );  //now adding modified subsetTemp to original subset (before{{},{1}} , after{{},{1},{2},{1,2}})
     }
+
+    sort(partes.begin(), partes.end());
+    partes.erase( unique(partes.begin(), partes.end() ), partes.end());
 }
 
+bool hay_interseccion_entre_pareja_articulos(Articulo a, Articulo b){
+    return  (a.x < b.x + b.ancho &&
+            a.x + a.ancho > b.x &&
+            a.y < b.y + b.alto &&
+            a.y + a.alto > b.y);
+}
+
+bool intersecan_todos_articulos(const vector<Articulo>& articulos) {
+    for(int i = 0; i < articulos.size(); i++){
+        for(int j = i+1; j < articulos.size(); j++){
+            if(!hay_interseccion_entre_pareja_articulos(articulos[i], articulos[j])){
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+Articulo calcular_articulo_interseccion_pareja(Articulo a, Articulo b){
+
+    // guardamos los puntos derecha-inferior de ambos articulos por comodidad
+    int x_dcha_a = a.x + a.ancho;
+    int y_inf_a = a.y + a.alto;
+
+    int x_dcha_b = b.x + b.ancho;
+    int y_inf_b = b.y + b.alto;
+
+    int res_x = max(a.x, b.x);
+    int res_y = max(a.y, b.y);
+    int res_ancho = min(x_dcha_a, x_dcha_b) - res_x;
+    int res_alto = min(y_inf_a, y_inf_b) - res_y;
+
+    return Articulo(0, res_x, res_y, res_ancho, res_alto);
+}
+
+int calcular_area_interseccion_total(const vector<Articulo>& articulos) {
+    if(articulos.size() == 0){
+        cout << "!!! No tiene articulos" << endl;
+        return 0;
+    }
+    if(articulos.size() == 1){
+        cout << "!!! Solo 1 articulo: area " << articulos[0].area << endl;
+        return articulos[0].area;
+    }
+
+    if(!intersecan_todos_articulos(articulos)){
+        cout << "!!! No intersecan todos los articulos" << endl;
+        return 0;
+    }
+
+    Articulo interseccion = articulos[0];
+    cout << "Interseccion parcial (primer articulo): ancho=" << interseccion.ancho << ", alto=" << interseccion.alto << ", x=" << interseccion.x << ", y=" << interseccion.y << endl;
+    for(int i = 1; i < articulos.size(); i++){
+        interseccion = calcular_articulo_interseccion_pareja(interseccion, articulos[i]);
+        cout << "Interseccion parcial: ancho=" << interseccion.ancho << ", alto=" << interseccion.alto << ", x=" << interseccion.x << ", y=" << interseccion.y << endl;
+    }
+
+    return interseccion.area;
+}
+
+
+
 // Calcula el área actual ocupada por los articulos pasados por parámetro
-int calcular_area(const vector<Articulo>& articulos_actuales) {
+int calcular_area(const vector<Articulo>& articulos) {
     int area_total = 0;
 
     vector<vector<Articulo>> partes;
-    calcular_partes(articulos_actuales, partes);
+    calcular_partes(articulos, partes);
 
     for(vector<Articulo> conjunto : partes){
-        int area_interseccion = calcular_area_interseccion(conjunto);
+        cout << "Calculando area conjunto ";
+        for(Articulo art : conjunto) cout << art.id << " ";
+        cout << endl;
 
+        int area_interseccion = calcular_area_interseccion_total(conjunto);
+        cout << "   Area interseccion: " << area_interseccion << endl;
         if(conjunto.size() % 2 == 0){
             area_total -= area_interseccion;
         } else {
             area_total += area_interseccion;
         }
+        cout << "Area total actual: " << area_total << endl << endl;
     }
+    cout << endl;
+    cout << "------------" << endl;
+    cout << "AREA TOTAL: " << area_total << endl;
+    cout << "------------" << endl;
 
     return area_total;
 }
@@ -111,8 +189,8 @@ bool cabe_en_pagina(const Pagina& pagina, const Articulo& articulo) {
 */
 
 // Comprueba si hay intersección entre el artículo actual y los articulos colocados anteriormente
-bool hay_interseccion(const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel) {
-    cout << "Entro hay_interseccion()" << endl;
+bool hay_interseccion_con_sig_articulo(const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel) {
+    cout << "Entro hay_interseccion_con_sig_articulo()" << endl;
     const Articulo& articulo_actual = sig_articulo;
 
     for (int i = 0; i < articulos_actuales.size(); ++i) {
@@ -121,24 +199,26 @@ bool hay_interseccion(const vector<Articulo>& articulos_actuales, const Articulo
                                         << articulo_anterior.x << ", " << articulo_anterior.y << ", " << articulo_anterior.ancho << ", " << articulo_anterior.alto << endl;
 
         // Comprueba si hay intersección entre los artículos
-        if (articulo_actual.x < articulo_anterior.x + articulo_anterior.ancho &&
-            articulo_actual.x + articulo_actual.ancho > articulo_anterior.x &&
-            articulo_actual.y < articulo_anterior.y + articulo_anterior.alto &&
-            articulo_actual.y + articulo_actual.alto > articulo_anterior.y) {
-            cout << "Hay interseccion" << endl;
+        if (hay_interseccion_entre_pareja_articulos(articulo_actual, articulo_anterior)) {
+            cout << "Hay interseccion con el siguiente articulo a anadir" << endl;
             return true;
         }
     }
-    cout << "NO hay interseccion" << endl;
+    cout << "NO hay interseccion con el siguiente articulo a anadir" << endl;
     return false;
 }
 
 int area_restante_maxima(const Pagina& pagina, const vector<Articulo>& articulos_actuales, int nivel){
-    vector articulos_restantes = articulos_actuales;
+    vector<Articulo> articulos_restantes = articulos_actuales;
     for (int i = nivel; i < pagina.num_articulos; i++){
         articulos_restantes.push_back(pagina.articulos[i]);
     }
 
+    cout << "Calculando AREA RESTANTE MAXIMA de ";
+    for(Articulo art : articulos_restantes){
+        cout << art.id << " ";
+    }
+    cout << endl;
     return calcular_area(articulos_restantes);
 }
 
@@ -152,12 +232,14 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
     }
     */
 
+    /*
     // Si hay intersección de artículos
     // --------------------------------------------------------------
-    if (hay_interseccion(articulos_actuales, sig_articulo, nivel)) {
-        cout << "PODA: Hay interseccion entre articulos" << endl;
+    if (hay_interseccion_con_sig_articulo(articulos_actuales, sig_articulo, nivel)) {
+        cout << " >>> PODA: Hay interseccion entre articulos" << endl;
         return true;
     }
+    */
 
     /*
     // Si el area que se va a añadir es menor que una óptima alcanzada
@@ -171,9 +253,15 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
         return true;
     }
     */
+    int area_restante_max = area_restante_maxima(pagina, articulos_actuales, nivel);
+    cout << endl;
+    cout << "   !!!!!!!!!" << endl;
+    cout << "   AREA RESTANTE MAXIMA: " << area_restante_max << endl;
+    cout << "   AREA OPTIMA: " << area_optima << endl;
+    cout << "   !!!!!!!!!" << endl;
 
-    if(area_optima < area_restante_maxima(pagina, articulos_actuales, nivel)){
-        cout << "PODA: (Area actual + Area que queda por añadir) es menor que la optima actual";
+    if(area_optima >= area_restante_max){
+        cout << " >>> PODA: (Area actual + Area que queda por anadir) es menor que la optima actual" << endl;
         return true;
     }
     
@@ -181,8 +269,11 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
 }
 
 void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, vector<Articulo>& articulos_optimos, int& area_optima, int nivel){
-    
     int area_actual = calcular_area(articulos_actuales);
+    cout << endl;
+    cout << "   !!!!!!!!!" << endl;
+    cout << "   AREA ANTES DE EXPANDIR: " << area_actual << endl;
+    cout << "   !!!!!!!!!" << endl;
 
     if(area_actual > area_optima) {
         area_optima = area_actual;
@@ -194,26 +285,29 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
                                           // Tambien es la condición de poda para no pasarnos del número de articulos
         Articulo sig_articulo = pagina.articulos[nivel];
         
-        cout << "Explorando articulo: " << sig_articulo.id << " en nivel " << nivel << endl;
+        cout << "--------------- Explorando articulo: " << sig_articulo.id << " en nivel " << nivel << endl;
         cout << sig_articulo.x << ", " << sig_articulo.y << ", " << sig_articulo.ancho << ", " << sig_articulo.alto << endl;
 
         if (!aplicar_poda(pagina, articulos_actuales, sig_articulo, nivel, area_optima))
         {
             cout << "No se aplica poda, continuando exploracion..." << endl;
 
-            // añade el articulo al vector
-            articulos_actuales.push_back(pagina.articulos[nivel]);
+            if(!hay_interseccion_con_sig_articulo(articulos_actuales, sig_articulo, nivel)){
+                // añade el articulo al vector
+                articulos_actuales.push_back(pagina.articulos[nivel]);
 
-            // RECORRE IZQUIERDA (añade el nuevo articulo)
-            // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
-            cout << "Explorando rama izquierda..." << endl;
-            raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
-            //area_optima = max(calcular_area(pagina, articulos_actuales), area_optima);
-            construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
+                // RECORRE IZQUIERDA (añade el nuevo articulo)
+                // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
+                cout << "Explorando rama izquierda..." << endl;
+                raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
+                //area_optima = max(calcular_area(pagina, articulos_actuales), area_optima);
+                construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
 
-            // extrae el articulo del vector
-            articulos_actuales.pop_back();
-
+                // extrae el articulo del vector
+                articulos_actuales.pop_back();
+            } else {
+                cout << "INTERSECCION: poda en rama izquierda" << endl;
+            }
             // RECORRE DERECHA (no añade el nuevo articulo)
             cout << "Explorando rama derecha..." << endl;
             raiz->right = new Node(raiz->articulos, raiz->id);
