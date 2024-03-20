@@ -3,7 +3,16 @@
   "files.associations": {
     "ostream": "cpp",
     "iostream": "cpp",
-    "chrono": "cpp"
+    "chrono": "cpp",
+    "bitset": "cpp",
+    "deque": "cpp",
+    "string": "cpp",
+    "vector": "cpp",
+    "array": "cpp",
+    "initializer_list": "cpp",
+    "regex": "cpp",
+    "utility": "cpp",
+    "valarray": "cpp"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",

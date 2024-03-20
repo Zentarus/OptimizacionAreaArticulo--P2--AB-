@@ -67,21 +67,38 @@ void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
     }
 }
 
+void calcular_partes(const vector<Articulo>& articulos_actuales, vector<vector<Articulo>>& partes){
+
+    for (int i = 0; i < articulos_actuales.size(); i++)
+    {
+        vector<vector<Articulo>> subset_temp = partes;  //making a copy of given 2-d vector.
+
+        for (int j = 0; j < subset_temp.size(); j++)
+            subset_temp[j].push_back( articulos_actuales[i] );   // adding set[i] element to each subset of subsetTemp. like adding {2}(in 2nd iteration  to {{},{1}} which gives {{2},{1,2}}.
+
+        for (int j = 0; j < subset_temp.size(); j++)
+            partes.push_back( subset_temp[j] );  //now adding modified subsetTemp to original subset (before{{},{1}} , after{{},{1},{2},{1,2}}) 
+    }
+}
+
 // Calcula el área actual ocupada por los articulos pasados por parámetro
 int calcular_area(const vector<Articulo>& articulos_actuales) {
-    
-    
-    // TO-DO
-    // Falta calcular area con formula de inclusion-exclusion
-    
-    
-    /*
     int area_total = 0;
-    for (const Articulo& articulo : articulos_actuales) {
-        area_total += articulo.area;
+
+    vector<vector<Articulo>> partes;
+    calcular_partes(articulos_actuales, partes);
+
+    for(vector<Articulo> conjunto : partes){
+        int area_interseccion = calcular_area_interseccion(conjunto);
+
+        if(conjunto.size() % 2 == 0){
+            area_total -= area_interseccion;
+        } else {
+            area_total += area_interseccion;
+        }
     }
+
     return area_total;
-    */
 }
 
 // Función para verificar si un artículo cabe completamente dentro de la página
