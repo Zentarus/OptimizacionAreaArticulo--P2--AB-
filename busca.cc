@@ -48,7 +48,7 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
         getline(f_in, x_articulo, ' ');
         getline(f_in, y_articulo);
 
-        v_articulos.push_back(Articulo(i, stoi(x_articulo), stoi(y_articulo), stoi(ancho_articulo), stoi(alto_articulo)));
+        v_articulos.push_back(Articulo(i, stoi(ancho_articulo), stoi(alto_articulo), stoi(x_articulo), stoi(y_articulo)));
 
     }
 
@@ -120,7 +120,7 @@ Articulo calcular_articulo_interseccion_pareja(Articulo a, Articulo b){
     int res_ancho = min(x_dcha_a, x_dcha_b) - res_x;
     int res_alto = min(y_inf_a, y_inf_b) - res_y;
 
-    return Articulo(0, res_x, res_y, res_ancho, res_alto);
+    return Articulo(0, res_ancho, res_alto, res_x, res_y);
 }
 
 int calcular_area_interseccion_total(const vector<Articulo>& articulos) {
@@ -340,7 +340,7 @@ void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
     cout << "Area optima: " << endl << "\t" << area_optima << endl << endl;
     cout << "Articulos utilizados: " << endl;
     for (Articulo art : articulos_optimos){
-        cout << "\t" << art.x << ", " << art.y << ", " << art.ancho << ", " << art.alto << endl;
+        cout << "\t" << art.ancho << ", " << art.alto << ", " << art.x << ", " << art.y << endl;
     }
 
     // PRUEBA
