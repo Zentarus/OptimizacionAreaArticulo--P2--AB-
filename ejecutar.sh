@@ -21,4 +21,4 @@ if [ ! -f entrada.txt ]; then
 fi
 
 # Llamar al programa busca con los archivos de entrada y salida
-./busca pruebas.txt salida_p2.txt
+./busca entrada.txt salida_p2.txt
