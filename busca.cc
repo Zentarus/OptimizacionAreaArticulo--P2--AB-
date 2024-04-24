@@ -59,8 +59,8 @@ void leer_pagina(ifstream& f_in, Pagina& pagina){
     pagina.articulos = v_articulos;
 }
 
-void escribir_resultados(ofstream& f_out, double tiempo_ejecucion){
-    f_out << "Aqui resultado area | " << setprecision(3) << tiempo_ejecucion << " ms" << endl;
+void escribir_resultados(ofstream& f_out, double tiempo_ejecucion, int area){
+    f_out << "Area: " << area << " | Tiempo de ejecucion: " << setprecision(3) << tiempo_ejecucion << " ms" << endl;
 }
 
 void copiar_articulos(vector<Articulo> viejo, vector<Articulo> nuevo){
@@ -179,14 +179,6 @@ int calcular_area(const vector<Articulo>& articulos) {
     return area_total;
 }
 
-// Función para verificar si un artículo cabe completamente dentro de la página
-/* Creo que no es necesaria pues todos los artículos caben, pero por si acaso
-bool cabe_en_pagina(const Pagina& pagina, const Articulo& articulo) {
-    cout << "Entro cabe_en_pagina()" << endl;
-    return  (articulo.x + articulo.ancho <= pagina.ancho) &&
-            (articulo.y + articulo.alto <= pagina.alto);
-}
-*/
 
 // Comprueba si hay intersección entre el artículo actual y los articulos colocados anteriormente
 bool hay_interseccion_con_sig_articulo(const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel) {
@@ -224,35 +216,6 @@ int area_restante_maxima(const Pagina& pagina, const vector<Articulo>& articulos
 
 bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actuales, const Articulo& sig_articulo, int nivel, int area_optima) {
 
-    /*
-    // Si el artículo actual no cabe en la página
-    if (!cabe_en_pagina(pagina, articulos_actuales[nivel])) {
-        cout << "PODA: El articulo no cabe en pagina" << endl;
-        return true;
-    }
-    */
-
-    /*
-    // Si hay intersección de artículos
-    // --------------------------------------------------------------
-    if (hay_interseccion_con_sig_articulo(articulos_actuales, sig_articulo, nivel)) {
-        cout << " >>> PODA: Hay interseccion entre articulos" << endl;
-        return true;
-    }
-    */
-
-    /*
-    // Si el area que se va a añadir es menor que una óptima alcanzada
-    // ---------------------------------------------------------------
-    vector<Articulo> vector_con_sig_articulo = articulos_actuales; // Declaramos un vector auxiliar con el siguiente articulo que se puede añadir
-    vector_con_sig_articulo.push_back(pagina.articulos[nivel]);
-    int area_con_sig_articulo = calcular_area(vector_con_sig_articulo); // Calculamos el área que se alcanza con dicho vector auxiliar
-
-    if (area_con_sig_articulo <= area_optima) {
-        cout << "PODA: Area a alcanzar es menor o igual que optima" << endl;
-        return true;
-    }
-    */
     int area_restante_max = area_restante_maxima(pagina, articulos_actuales, nivel);
     cout << endl;
     cout << "   !!!!!!!!!" << endl;
@@ -324,7 +287,7 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
 
 
 // faltará que esta función devuelva por referencia el area_optima que habrá calculado construir_siguiente_nivel(...)
-void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
+void obtener_composicion_optima(Pagina& pagina, double& duracion_ms, int& resultado_area){
     int area_optima = 0;
     vector<Articulo> articulos_insertados, articulos_optimos;
     Node* raiz = new Node(articulos_insertados, "");
@@ -335,31 +298,19 @@ void obtener_composicion_optima(Pagina& pagina, double& duracion_ms){
 
     duracion_ms = chrono::duration_cast<chrono::nanoseconds>(end_time - start_time).count() / 1000000.0;
     Node::print_tree(raiz, 0);
-
+    resultado_area = area_optima;
+    
     cout << endl << "--------------------------------------------------------" << endl;
     cout << "Area optima: " << endl << "\t" << area_optima << endl << endl;
     cout << "Articulos utilizados: " << endl;
     for (Articulo art : articulos_optimos){
         cout << "\t" << art.ancho << ", " << art.alto << ", " << art.x << ", " << art.y << endl;
     }
-
-    // PRUEBA
-    /*
-    Articulo art0 = pagina.articulos[0];
-    Articulo art1 = pagina.articulos[1];
-    Articulo art2 = pagina.articulos[2];
-    vector<Articulo> arts;
-    arts.push_back(art0);
-    arts.push_back(art1);
-    arts.push_back(art2);
-    Node* raiz = new Node(arts, to_string(art0.id) + to_string(art1.id) + to_string(art2.id));
-    cout << raiz->id << endl;
-    cout << raiz->area_ocupada << endl;
-    */
 }
 
 int main(int argc, char *argv[]){
     double tiempo_ejecucion = 0.0;
+    int resultado_area;
     ifstream f_in;
     ofstream f_out;
 
@@ -370,17 +321,13 @@ int main(int argc, char *argv[]){
 
     abrir_fichero_lectura(argv[1], f_in);
     abrir_fichero_escritura(argv[2], f_out);
-    /*Pagina pagina;
-    leer_pagina(f_in, pagina);
-    pagina.mostrar_pagina(true);
-    */
 
     while(!f_in.eof()){
         Pagina pagina;
         leer_pagina(f_in, pagina);
-        obtener_composicion_optima(pagina, tiempo_ejecucion);
+        obtener_composicion_optima(pagina, tiempo_ejecucion, resultado_area);
         //pagina.mostrar_pagina(true, num_paginas);
-        escribir_resultados(f_out, tiempo_ejecucion);
+        escribir_resultados(f_out, tiempo_ejecucion, resultado_area);
     }
     
     f_in.close();

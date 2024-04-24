@@ -12,7 +12,8 @@
     "initializer_list": "cpp",
     "regex": "cpp",
     "utility": "cpp",
-    "valarray": "cpp"
+    "valarray": "cpp",
+    "iomanip": "cpp"
   },
   "C_Cpp_Runner.cCompilerPath": "gcc",
   "C_Cpp_Runner.cppCompilerPath": "g++",
