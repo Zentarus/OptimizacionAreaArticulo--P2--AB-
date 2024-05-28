@@ -200,7 +200,8 @@ bool aplicar_poda(const Pagina& pagina, const vector<Articulo>& articulos_actual
     return false;
 }
 
-void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, vector<Articulo>& articulos_optimos, int& area_optima, int nivel){
+void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> articulos_actuales, vector<Articulo>& articulos_optimos, int& area_optima, int nivel, int& nodos_expandidos){
+    nodos_expandidos++;
     int area_actual = calcular_area(articulos_actuales);
 
     if(area_actual > area_optima) {
@@ -223,7 +224,7 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
                 // (recorre primero izquierda porque añadir un articulo nuevo siempre sera mejor que no añadirlo)
                 raiz->left = new Node(articulos_actuales, raiz->id + to_string(sig_articulo.id));
                 //area_optima = max(calcular_area(pagina, articulos_actuales), area_optima);
-                construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
+                construir_siguiente_nivel(pagina, raiz->left, articulos_actuales, articulos_optimos, area_optima, nivel + 1, nodos_expandidos);
 
                 // extrae el articulo del vector
                 articulos_actuales.pop_back();
@@ -231,26 +232,26 @@ void construir_siguiente_nivel(Pagina& pagina, Node* raiz, vector<Articulo> arti
 
             // RECORRE DERECHA (no añade el nuevo articulo)
             raiz->right = new Node(raiz->articulos, raiz->id);
-            construir_siguiente_nivel(pagina, raiz->right, articulos_actuales, articulos_optimos, area_optima, nivel + 1);
+            construir_siguiente_nivel(pagina, raiz->right, articulos_actuales, articulos_optimos, area_optima, nivel + 1, nodos_expandidos);
         }
     }
 }
 
 
 // faltará que esta función devuelva por referencia el area_optima que habrá calculado construir_siguiente_nivel(...)
-int obtener_composicion_optima(Pagina& pagina, vector<Articulo>& articulos_optimos){
+int obtener_composicion_optima(Pagina& pagina, vector<Articulo>& articulos_optimos, int& nodos_expandidos){
     int area_optima = 0;
     vector<Articulo> articulos_insertados;
     Node* raiz = new Node(articulos_insertados, "");
 
-    construir_siguiente_nivel(pagina, raiz, articulos_insertados, articulos_optimos, area_optima, 0);
+    construir_siguiente_nivel(pagina, raiz, articulos_insertados, articulos_optimos, area_optima, 0, nodos_expandidos);
     return area_optima;
 }
 
-void imprimir_solucion(ofstream& f_out, int num_pag, int area_solucion, vector<Articulo> art_solucion, long double tiempo_ejecucion){
+void imprimir_solucion(ofstream& f_out, int num_pag, int area_solucion, vector<Articulo> art_solucion, long double tiempo_ejecucion, int nodos_expandidos){
     f_out << endl;
 
-    f_out << "Pagina " << num_pag << endl << "\tTiempo: " << tiempo_ejecucion << " ms" << endl << "\tArea: " << area_solucion << " mm" << endl << "\tArticulos:";
+    f_out << "Pagina " << num_pag << endl << "\tTiempo: " << tiempo_ejecucion << " ms" << endl << "\tNodos expandidos: " << nodos_expandidos << endl << "\tArea: " << area_solucion << " mm" << endl << "\tArticulos:";
     for(Articulo art : art_solucion){
         f_out << endl << "\t\t";
         f_out << art.ancho << " " << art.alto << " " << art.x << " " << art.y << " (Area: " << art.area << " mm)";
@@ -265,6 +266,7 @@ int main(int argc, char *argv[]){
     ofstream f_out;
     int num_pag = 1;
     int area_solucion = 0;
+    int nodos_expandidos = 0;
     vector<Articulo> articulos_solucion = {};
 
 
@@ -281,13 +283,13 @@ int main(int argc, char *argv[]){
         leer_pagina(f_in, pagina);
 
         auto start_time = chrono::high_resolution_clock::now();
-        area_solucion = obtener_composicion_optima(pagina, articulos_solucion);
+        area_solucion = obtener_composicion_optima(pagina, articulos_solucion, nodos_expandidos);
         auto end_time = chrono::high_resolution_clock::now();
         
         auto duracion = chrono::duration_cast<chrono::nanoseconds>(end_time - start_time) / 1000000.0;
         tiempo_ejecucion = duracion.count();
 
-        imprimir_solucion(f_out, num_pag, area_solucion, articulos_solucion, tiempo_ejecucion);
+        imprimir_solucion(f_out, num_pag, area_solucion, articulos_solucion, tiempo_ejecucion, nodos_expandidos);
         num_pag++;
     }
     
